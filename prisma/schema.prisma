@@ -8,24 +8,24 @@ datasource db {
 }
 
 model User {
-  id                              String                @id @default(uuid())
-  email                           String?               @unique
-  password                        String?
-  avatar                          String?
-  created_at                      DateTime              @default(now())
-  posts                           Feedback_posts[]      @relation("UserPosts")
+  email     String           @unique
+  password  String
+  avatar    String?
+  createdAt DateTime         @default(now()) @map("created_at")
+  id        Int              @id @default(autoincrement())
+  posts     Feedback_posts[] @relation("UserPosts")
 }
 
 model Feedback_posts {
-    id                              String                @id @default(uuid())
-    title                           String                @unique
-    description                     String
-    category                        Category
-    status                          Status
-    author_id                       String 
-    author                          User                  @relation("UserPosts", fields: [author_id], references: [id])
-    created_at                      DateTime              @default(now())
-    updated_at                      DateTime              @updatedAt
+  title       String   @unique
+  description String
+  category    Category
+  status      Status
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  author_id   Int
+  author      User     @relation("UserPosts", fields: [author_id], references: [id])
 }
 
 enum Category {
@@ -35,6 +35,7 @@ enum Category {
   performance
   other
 }
+
 enum Status {
   Idea
   Planned
