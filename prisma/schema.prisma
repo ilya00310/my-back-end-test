@@ -8,23 +8,23 @@ datasource db {
 }
 
 model User {
-  email     String           @unique
+  id        String        @id @default(uuid())
+  email     String        @unique
   password  String
   avatar    String?
-  createdAt DateTime         @default(now()) @map("created_at")
-  id        Int              @id @default(autoincrement())
+  createdAt DateTime      @default(now()) @map("created_at") 
   posts     Feedback_posts[] @relation("UserPosts")
 }
 
 model Feedback_posts {
+  id                              String                @id @default(uuid())
   title       String   @unique
   description String
   category    Category
   status      Status
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  id          Int      @id @default(autoincrement())
-  author_id   Int
+  author_id   String
   author      User     @relation("UserPosts", fields: [author_id], references: [id])
 }
 
