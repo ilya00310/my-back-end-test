@@ -7,6 +7,8 @@ import { User } from '@prisma/client';
 import * as dotenv from 'dotenv';
 import { LoginUserDto } from './dto/loginUserDto';
 import { TokenDto } from './dto/tokenDto';
+import { CurrentUserDto } from './dto/currentUserDto';
+import { RequestInfo } from '../common/interface/request.interface';
 
 dotenv.config();
 
@@ -86,5 +88,11 @@ export class AuthService {
     throw new UnauthorizedException({
       message: 'Email or password incorrect',
     });
+  }
+  async getCurrentAuthUser(req: RequestInfo) {
+    const idCurrentUser = req.user.id;
+    const currentUser = await this.userService.getUserById(idCurrentUser);
+    const currentUserWithoutPassword = { ...currentUser, password: undefined };
+    return currentUserWithoutPassword;
   }
 }

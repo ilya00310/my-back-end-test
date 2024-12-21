@@ -13,10 +13,7 @@ import { TokenUserDto } from './dto/tokenUserDto';
 @ApiTags('authorization')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private userService: UsersService,
-  ) {}
+  constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: 'Login user' })
   @ApiResponse({ status: 200, type: TokenUserDto })
@@ -40,12 +37,11 @@ export class AuthController {
     return this.authService.refresh(refreshToken);
   }
 
-  @ApiOperation({ summary: 'Get current user' })
+  @ApiOperation({ summary: 'Get current login user' })
   @ApiResponse({ status: 200, type: UserDto })
   @UseGuards(JwtAuthGuard)
   @Get('/me')
   getMyInfo(@Request() req: RequestInfo) {
-    const currentUser = req.user;
-    return this.userService.getUserById(currentUser.id);
+    return this.authService.getCurrentAuthUser(req);
   }
 }
