@@ -9,8 +9,9 @@ export class CreateUserDto {
   @ApiProperty({ example: 'JohnDoe', description: 'User avatar' })
   readonly avatar?: string;
 
-  constructor(password: string, email: string) {
+  constructor(password: string, email: string, avatar: string) {
     this.password = password;
     this.email = email;
+    this.avatar = avatar;
   }
 }

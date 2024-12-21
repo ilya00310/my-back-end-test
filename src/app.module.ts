@@ -7,9 +7,10 @@ import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PrismaService } from './database/prisma.service';
+import { FeedbackPostsModule } from './feedback-posts/feedbackPosts.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), DatabaseModule, AuthModule, UsersModule],
+  imports: [ConfigModule.forRoot(), DatabaseModule, AuthModule, UsersModule, FeedbackPostsModule],
   controllers: [AuthController],
   providers: [AuthService, JwtService, PrismaService],
 })

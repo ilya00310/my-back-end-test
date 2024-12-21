@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { CreateUserDto } from '../users/dto/createUser.dto';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
@@ -19,7 +19,9 @@ export class AuthService {
 
   async login(userDto: LoginUserDto) {
     const user = await this.validateUser(userDto);
-    return this.generateTokens(user);
+    const tokens = await this.generateTokens(user);
+    const userWithoutPassword = { ...user, password: undefined };
+    return { user: userWithoutPassword, tokens };
   }
 
   async registration(userDto: CreateUserDto) {
@@ -29,7 +31,9 @@ export class AuthService {
     }
     const hashPassword = await bcrypt.hash(userDto.password, 5);
     const user = await this.userService.createUser({ ...userDto, password: hashPassword });
-    return this.generateTokens(user);
+    const tokens = await this.generateTokens(user);
+    const userWithoutPassword = { ...user, password: undefined };
+    return { user: userWithoutPassword, tokens };
   }
 
   async generateTokens(user: User) {
@@ -44,7 +48,6 @@ export class AuthService {
       secret: process.env.PRIVATE_KEY || 'your-secret-key',
       expiresIn: '7d',
     });
-
     return { accessToken, refreshToken };
   }
   async refresh(Tokens: TokenDto) {
@@ -57,7 +60,9 @@ export class AuthService {
       if (!user) {
         throw new UnauthorizedException('Invalid user');
       }
-      return this.generateTokens(user);
+      const tokens = await this.generateTokens(user);
+      const userWithoutPassword = { ...user, password: undefined };
+      return { user: userWithoutPassword, tokens };
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
@@ -66,7 +71,7 @@ export class AuthService {
     const user = await this.userService.getUserByEmail(userDto.email);
     if (!user) {
       throw new UnauthorizedException({
-        message: 'Email or password incorrect',
+        message: 'User not found',
       });
     }
     if (!user.password) {
