@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
+import { ValidationPipe } from '@nestjs/common';
+
 dotenv.config();
 
 const start = async () => {
@@ -10,6 +12,13 @@ const start = async () => {
   const config = new DocumentBuilder().setTitle('feedback_service').setDescription('Documentation REST API').setVersion('1.0.0').build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/api/docs', app, document);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
   app.listen(PORT, () => console.log(`Server started on port = ${PORT}`));
 };
 
