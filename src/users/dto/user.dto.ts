@@ -11,16 +11,16 @@ export class UserDto {
   readonly email: string;
 
   @ApiProperty({ example: 'JohnDoe', description: 'User avatar' })
-  readonly avatar?: string;
+  readonly avatar: string | null;
 
   @ApiProperty({ example: '2023-01-02', description: 'user creation date' })
   readonly createdAt: Date;
 
-  constructor(id: string, password: string, email: string, avatar: string, createdAt: Date) {
+  constructor(id: string, password: string, email: string, createdAt: Date, avatar?: string) {
     this.id = id;
     this.password = password;
     this.email = email;
-    this.avatar = avatar ?? '';
+    this.avatar = avatar ?? null;
     this.createdAt = createdAt;
   }
 }

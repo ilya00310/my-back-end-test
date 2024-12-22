@@ -8,7 +8,8 @@ import * as dotenv from 'dotenv';
 import { LoginUserDto } from './dto/loginUserDto';
 import { TokenDto } from './dto/tokenDto';
 import { CurrentUserDto } from './dto/currentUserDto';
-import { RequestInfo } from '../common/interface/request.interface';
+import { TokenUserDto } from './dto/tokenUserDto';
+import { UserDto } from 'src/users/dto/user.dto';
 
 dotenv.config();
 
@@ -19,14 +20,14 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(userDto: LoginUserDto) {
+  async login(userDto: LoginUserDto): Promise<TokenUserDto> {
     const user = await this.validateUser(userDto);
     const tokens = await this.generateTokens(user);
     const userWithoutPassword = { ...user, password: undefined };
     return { user: userWithoutPassword, tokens };
   }
 
-  async registration(userDto: CreateUserDto) {
+  async registration(userDto: CreateUserDto): Promise<TokenUserDto> {
     const candidate = await this.userService.getUserByEmail(userDto.email);
     if (candidate) {
       throw new HttpException('Users with current email address exist', HttpStatus.BAD_REQUEST);
@@ -38,7 +39,7 @@ export class AuthService {
     return { user: userWithoutPassword, tokens };
   }
 
-  async generateTokens(user: User) {
+  async generateTokens(user: User): Promise<TokenDto> {
     const payLoad = { id: user.id, email: user.email, avatar: user.avatar };
 
     const accessToken = this.jwtService.sign(payLoad, {
@@ -52,7 +53,7 @@ export class AuthService {
     });
     return { accessToken, refreshToken };
   }
-  async refresh(Tokens: TokenDto) {
+  async refresh(Tokens: TokenDto): Promise<TokenUserDto> {
     try {
       const payload = this.jwtService.verify(Tokens.refreshToken, {
         secret: process.env.PRIVATE_KEY || 'your-secret-key',
@@ -69,7 +70,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
-  private async validateUser(userDto: LoginUserDto) {
+  private async validateUser(userDto: LoginUserDto): Promise<UserDto> {
     const user = await this.userService.getUserByEmail(userDto.email);
     if (!user) {
       throw new UnauthorizedException({
@@ -89,9 +90,12 @@ export class AuthService {
       message: 'Email or password incorrect',
     });
   }
-  async getCurrentAuthUser(req: RequestInfo) {
-    const idCurrentUser = req.user.id;
-    const currentUser = await this.userService.getUserById(idCurrentUser);
+  async getCurrentAuthUser(currentUser: CurrentUserDto): Promise<CurrentUserDto | null> {
+    const { id } = currentUser;
+    const currentUserExist = await this.userService.getUserById(id);
+    if (!currentUser) {
+      return null;
+    }
     const currentUserWithoutPassword = { ...currentUser, password: undefined };
     return currentUserWithoutPassword;
   }

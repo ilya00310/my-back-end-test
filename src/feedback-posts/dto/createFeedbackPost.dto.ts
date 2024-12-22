@@ -1,6 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Category } from '../../common/enum/category';
-import { Status } from '../../common/enum/status';
+import { ApiFoundResponse, ApiProperty } from '@nestjs/swagger';
+import { Category, Status } from '@prisma/client';
 
 export class CreateFeedbackPostDto {
   @ApiProperty({ example: 'basket', description: 'Title post' })

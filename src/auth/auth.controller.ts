@@ -3,7 +3,6 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from '../users/dto/createUser.dto';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/loginUserDto';
-import { UsersService } from '../users/users.service';
 import { UserDto } from '../users/dto/user.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RequestInfo } from '../common/interface/request.interface';
@@ -42,6 +41,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('/me')
   getMyInfo(@Request() req: RequestInfo) {
-    return this.authService.getCurrentAuthUser(req);
+    const currentUser = req.user;
+    return this.authService.getCurrentAuthUser(currentUser);
   }
 }

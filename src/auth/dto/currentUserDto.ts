@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 export class CurrentUserDto {
   @ApiProperty({ example: 1, description: 'User id' })
   readonly id: string;
@@ -7,15 +8,11 @@ export class CurrentUserDto {
   readonly email: string;
 
   @ApiProperty({ example: 'John Doe', description: 'User avatar' })
-  readonly avatar?: string;
+  readonly avatar?: string | null;
 
-  @ApiProperty({ example: '2024-01-03', description: 'Date create user' })
-  readonly createdAt: Date;
-
-  constructor(id: string, email: string, createdAt: Date, avatar?: string) {
+  constructor(id: string, email: string, avatar?: string) {
     this.id = id;
     this.email = email;
-    this.createdAt = createdAt;
-    this.avatar = avatar ?? '';
+    this.avatar = avatar ?? null;
   }
 }

@@ -1,28 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateFeedbackPostDto } from './dto/createFeedbackPost.dto';
 import { UpdateFeedbackPostDto } from './dto/updateFeedbackPost.dto';
 import { PrismaService } from '../database/prisma.service';
-
+import { Feedback_posts } from '@prisma/client';
+import { FeedbackPostDto } from './dto/feedbackPostDto';
+import { CurrentUserDto } from 'src/auth/dto/currentUserDto';
 @Injectable()
 export class FeedbackPostsService {
   constructor(private prismaService: PrismaService) {}
-  create(createFeedbackPostDto: CreateFeedbackPostDto) {
-    return 'This action adds a new feedbackPost';
+  async create(dto: CreateFeedbackPostDto, currentUser: CurrentUserDto): Promise<FeedbackPostDto> {
+    const { id } = currentUser;
+    const existingFeedbackPost = await this.prismaService.feedback_posts.findUnique({
+      where: { title: dto.title },
+    });
+    if (existingFeedbackPost) {
+      throw new ConflictException('Project with this name already exists');
+    }
+    const newFeedbackPost = await this.prismaService.feedback_posts.create({
+      data: {
+        title: dto.title,
+        description: dto.description,
+        category: dto.category,
+        status: dto.status,
+        author_id: id,
+      },
+    });
+    return newFeedbackPost;
   }
 
-  findAll() {
-    return `This action returns all feedbackPosts`;
+  async getFeedbackPosts(): Promise<Feedback_posts[]> {
+    const feedbackPosts = await this.prismaService.feedback_posts.findMany();
+    return feedbackPosts;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} feedbackPost`;
+  async getFeedbackPost(id: string): Promise<Feedback_posts | null> {
+    const feedbackPost = await this.prismaService.feedback_posts.findUnique({ where: { id } });
+    if (!feedbackPost) {
+      return null;
+    }
+    return feedbackPost;
   }
 
-  update(id: number, updateFeedbackPostDto: UpdateFeedbackPostDto) {
-    return `This action updates a #${id} feedbackPost`;
+  async updateFeedbackPosts(id: string, updateFeedbackPostDto: UpdateFeedbackPostDto, currentUser: CurrentUserDto): Promise<Feedback_posts> {
+    const currentFeedbackPost = await this.prismaService.feedback_posts.findUnique({ where: { id } });
+    if (!currentFeedbackPost) {
+      throw new NotFoundException('Feedback post not found');
+    }
+    if (currentFeedbackPost.author_id !== currentUser.id) {
+      throw new ForbiddenException('You do not have permission to access this post');
+    }
+    const newFeedbackPost = await this.prismaService.feedback_posts.update({ data: updateFeedbackPostDto, where: { id } });
+    return newFeedbackPost;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} feedbackPost`;
+  async removeFeedbackPosts(id: string, currentUser: CurrentUserDto): Promise<string> {
+    const currentFeedbackPost = await this.prismaService.feedback_posts.findUnique({ where: { id } });
+    if (!currentFeedbackPost) {
+      throw new NotFoundException('Feedback post not found');
+    }
+    if (currentFeedbackPost.author_id !== currentUser.id) {
+      throw new ForbiddenException('You do not have permission to access this post');
+    }
+    await this.prismaService.feedback_posts.delete({ where: { id } });
+    return 'Feedback post deleted';
   }
 }
