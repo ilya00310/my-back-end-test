@@ -6,6 +6,7 @@ import { UpdateFeedbackPostDto } from './dto/updateFeedbackPost.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FeedbackPostDto } from './dto/feedbackPostDto';
 import { RequestInfo } from '../common/interface/request.interface';
+import { Category, Status } from '@prisma/client';
 
 @ApiTags('Feedback Posts')
 @Controller('feedbackPosts')
@@ -52,5 +53,21 @@ export class FeedbackPostsController {
   remove(@Query('id') id: string, @Request() req: RequestInfo) {
     const currentUser = req.user;
     return this.feedbackPostsService.removeFeedbackPosts(id, currentUser);
+  }
+
+  @ApiOperation({ summary: 'Get available statuses' })
+  @ApiResponse({ status: 200, type: [String] })
+  @UseGuards(JwtAuthGuard)
+  @Get('/statuses')
+  getStatuses() {
+    return this.feedbackPostsService.getStatuses();
+  }
+
+  @ApiOperation({ summary: 'Get available categories' })
+  @ApiResponse({ status: 200, type: [String] })
+  @UseGuards(JwtAuthGuard)
+  @Get('/categories')
+  getCategories() {
+    return this.feedbackPostsService.getCategories();
   }
 }

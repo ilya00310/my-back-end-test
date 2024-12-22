@@ -16,7 +16,7 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "FeedbackPosts" (
+CREATE TABLE "Feedback_posts" (
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "category" "Category" NOT NULL,
@@ -26,14 +26,14 @@ CREATE TABLE "FeedbackPosts" (
     "id" TEXT NOT NULL,
     "author_id" TEXT NOT NULL,
 
-    CONSTRAINT "FeedbackPosts_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Feedback_posts_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "FeedbackPosts_title_key" ON "FeedbackPosts"("title");
+CREATE UNIQUE INDEX "Feedback_posts_title_key" ON "Feedback_posts"("title");
 
 -- AddForeignKey
-ALTER TABLE "FeedbackPosts" ADD CONSTRAINT "FeedbackPosts_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Feedback_posts" ADD CONSTRAINT "Feedback_posts_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

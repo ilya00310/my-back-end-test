@@ -5,6 +5,8 @@ import { PrismaService } from '../database/prisma.service';
 import { Feedback_posts } from '@prisma/client';
 import { FeedbackPostDto } from './dto/feedbackPostDto';
 import { CurrentUserDto } from 'src/auth/dto/currentUserDto';
+import { Category, Status } from '@prisma/client';
+
 @Injectable()
 export class FeedbackPostsService {
   constructor(private prismaService: PrismaService) {}
@@ -63,5 +65,13 @@ export class FeedbackPostsService {
     }
     await this.prismaService.feedback_posts.delete({ where: { id } });
     return 'Feedback post deleted';
+  }
+  async getStatuses(): Promise<Status[]> {
+    const statuses: Status[] = ['Idea', 'Planned', 'AtWork', 'Performed'];
+    return statuses;
+  }
+  async getCategories(): Promise<Category[]> {
+    const categories: Category[] = ['Functionality', 'Bug', 'Unique', 'Performance', 'Other'];
+    return categories;
   }
 }
