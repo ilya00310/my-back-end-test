@@ -1,20 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Category, Status } from '@prisma/client';
-import { IsEnum, IsIn, IsInt, IsOptional, Min } from 'class-validator';
+import { IsEnum, IsOptional } from 'class-validator';
 
 export class FilterFeedbackPostDto {
   @ApiProperty({ example: 'Bug', description: 'Category post' })
   @IsEnum(Category)
   @IsOptional()
-  readonly category: Category | null;
+  category?: Category;
 
   @ApiProperty({ example: 'Idea', description: 'Status post' })
   @IsOptional()
   @IsEnum(Status)
-  readonly status?: Status | null;
+  status?: Status;
 
   constructor(category?: Category, status?: Status) {
-    this.category = category ?? null;
-    this.status = status ?? null;
+    this.category = category;
+    this.status = status;
   }
 }

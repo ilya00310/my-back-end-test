@@ -2,12 +2,14 @@ import { ConflictException, ForbiddenException, Injectable, NotFoundException } 
 import { CreateFeedbackPostDto } from './dto/createFeedbackPost.dto';
 import { UpdateFeedbackPostDto } from './dto/updateFeedbackPost.dto';
 import { PrismaService } from '../database/prisma.service';
-import { Feedback_posts } from '@prisma/client';
 import { FeedbackPostDto } from './dto/feedbackPostDto';
 import { CurrentUserDto } from 'src/auth/dto/currentUserDto';
-import { Category, Status } from '@prisma/client';
+import { Category, Status, Feedback_posts, Prisma } from '@prisma/client';
 import { FilterFeedbackPostDto } from './dto/filterFeedbackPostsDto';
 import { SortFeedbackPostDto } from './dto/sortFeedbackPostsDto';
+
+const statuses: Status[] = ['Idea', 'Planned', 'AtWork', 'Performed'];
+const categories: Category[] = ['Functionality', 'Bug', 'Unique', 'Performance', 'Other'];
 
 @Injectable()
 export class FeedbackPostsService {
@@ -49,39 +51,35 @@ export class FeedbackPostsService {
 
   async updateFeedbackPosts(id: string, updateFeedbackPostDto: UpdateFeedbackPostDto, currentUser: CurrentUserDto): Promise<Feedback_posts> {
     const currentFeedbackPost = await this.prismaService.feedback_posts.findUnique({ where: { id } });
-    if (!currentFeedbackPost) {
-      throw new NotFoundException('Feedback post not found');
-    }
-    if (currentFeedbackPost.author_id !== currentUser.id) {
-      throw new ForbiddenException('You do not have permission to access this post');
-    }
+    this.checkExistAndAccess(currentFeedbackPost, currentUser.id);
     const newFeedbackPost = await this.prismaService.feedback_posts.update({ data: updateFeedbackPostDto, where: { id } });
     return newFeedbackPost;
   }
 
   async removeFeedbackPosts(id: string, currentUser: CurrentUserDto): Promise<string> {
     const currentFeedbackPost = await this.prismaService.feedback_posts.findUnique({ where: { id } });
-    if (!currentFeedbackPost) {
-      throw new NotFoundException('Feedback post not found');
-    }
-    if (currentFeedbackPost.author_id !== currentUser.id) {
-      throw new ForbiddenException('You do not have permission to access this post');
-    }
+    this.checkExistAndAccess(currentFeedbackPost, currentUser.id);
     await this.prismaService.feedback_posts.delete({ where: { id } });
     return 'Feedback post deleted';
   }
+  async checkExistAndAccess(currentFeedbackPost: FeedbackPostDto | null, currentUserId: string): Promise<void> {
+    if (!currentFeedbackPost) {
+      throw new NotFoundException('Feedback post not found');
+    }
+    if (currentFeedbackPost.author_id !== currentUserId) {
+      throw new ForbiddenException('You do not have permission to access this post');
+    }
+  }
   async getStatuses(): Promise<Status[]> {
-    const statuses: Status[] = ['Idea', 'Planned', 'AtWork', 'Performed'];
     return statuses;
   }
   async getCategories(): Promise<Category[]> {
-    const categories: Category[] = ['Functionality', 'Bug', 'Unique', 'Performance', 'Other'];
     return categories;
   }
 
   async getFilterFeedbackPosts(userDto: FilterFeedbackPostDto, page: number, pageSize: number): Promise<FeedbackPostDto[]> {
     const { status, category } = userDto;
-    const filters: any = {};
+    const filters: FilterFeedbackPostDto = {};
     if (status) {
       filters.status = status;
     }
@@ -101,8 +99,7 @@ export class FeedbackPostsService {
   }
   async getSortFeedbackPosts(userDto: SortFeedbackPostDto, page: number, pageSize: number) {
     const { startVotes, endVotes, startDate, endDate, order } = userDto;
-
-    const where: any = {};
+    const where: Prisma.Feedback_postsScalarWhereInput = {};
 
     const skip = (page - 1) * pageSize;
     const take = pageSize;
