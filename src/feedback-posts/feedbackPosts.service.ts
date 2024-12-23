@@ -6,32 +6,36 @@ import { Feedback_posts } from '@prisma/client';
 import { FeedbackPostDto } from './dto/feedbackPostDto';
 import { CurrentUserDto } from 'src/auth/dto/currentUserDto';
 import { Category, Status } from '@prisma/client';
+import { FilterFeedbackPostDto } from './dto/filterFeedbackPostsDto';
+import { SortFeedbackPostDto } from './dto/sortFeedbackPostsDto';
 
 @Injectable()
 export class FeedbackPostsService {
   constructor(private prismaService: PrismaService) {}
-  async create(dto: CreateFeedbackPostDto, currentUser: CurrentUserDto): Promise<FeedbackPostDto> {
+  async create(userDto: CreateFeedbackPostDto, currentUser: CurrentUserDto): Promise<FeedbackPostDto> {
     const { id } = currentUser;
     const existingFeedbackPost = await this.prismaService.feedback_posts.findUnique({
-      where: { title: dto.title },
+      where: { title: userDto.title },
     });
     if (existingFeedbackPost) {
       throw new ConflictException('Project with this name already exists');
     }
     const newFeedbackPost = await this.prismaService.feedback_posts.create({
       data: {
-        title: dto.title,
-        description: dto.description,
-        category: dto.category,
-        status: dto.status,
+        title: userDto.title,
+        description: userDto.description,
+        category: userDto.category,
+        status: userDto.status,
         author_id: id,
       },
     });
     return newFeedbackPost;
   }
 
-  async getFeedbackPosts(): Promise<Feedback_posts[]> {
-    const feedbackPosts = await this.prismaService.feedback_posts.findMany();
+  async getFeedbackPosts(page: number, pageSize: number): Promise<Feedback_posts[]> {
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+    const feedbackPosts = await this.prismaService.feedback_posts.findMany({ skip, take });
     return feedbackPosts;
   }
 
@@ -73,5 +77,78 @@ export class FeedbackPostsService {
   async getCategories(): Promise<Category[]> {
     const categories: Category[] = ['Functionality', 'Bug', 'Unique', 'Performance', 'Other'];
     return categories;
+  }
+
+  async getFilterFeedbackPosts(userDto: FilterFeedbackPostDto, page: number, pageSize: number): Promise<FeedbackPostDto[]> {
+    const { status, category } = userDto;
+    const filters: any = {};
+    if (status) {
+      filters.status = status;
+    }
+    if (category) {
+      filters.category = category;
+    }
+
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    const filterFeedbackPosts = await this.prismaService.feedback_posts.findMany({
+      where: filters,
+      skip,
+      take,
+    });
+    return filterFeedbackPosts;
+  }
+  async getSortFeedbackPosts(userDto: SortFeedbackPostDto, page: number, pageSize: number) {
+    const { startVotes, endVotes, startDate, endDate, order } = userDto;
+
+    const where: any = {};
+
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    if (startVotes || endVotes) {
+      where.votes = {};
+      if (startVotes) {
+        where.votes.gte = startVotes;
+      }
+      if (endVotes) {
+        where.votes.lte = endVotes;
+      }
+    }
+
+    if (startDate && endDate) {
+      where.createdAt = {
+        gte: new Date(startDate),
+        lte: new Date(endDate),
+      };
+    } else if (startDate) {
+      where.createdAt = {
+        gte: new Date(startDate),
+      };
+    } else if (endDate) {
+      where.createdAt = {
+        lte: new Date(endDate),
+      };
+    }
+
+    const orderByArray = [];
+
+    if (startVotes !== undefined || endVotes !== undefined) {
+      orderByArray.push({ votes: order });
+    }
+
+    if (startDate || endDate) {
+      orderByArray.push({ createdAt: order });
+    }
+
+    const feedbackPosts = await this.prismaService.feedback_posts.findMany({
+      where,
+      orderBy: orderByArray.length > 0 ? orderByArray : undefined,
+      skip,
+      take,
+    });
+
+    return feedbackPosts;
   }
 }

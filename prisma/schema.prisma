@@ -14,6 +14,7 @@ model User {
   avatar    String?
   createdAt DateTime         @default(now()) @map("created_at")
   posts     Feedback_posts[] @relation("UserPosts")
+  votes     User_vote[]      @relation("UserVotes") 
 }
 
 model Feedback_posts {
@@ -25,7 +26,21 @@ model Feedback_posts {
   updatedAt   DateTime @updatedAt @map("updated_at")
   id          String   @id @default(uuid())
   author_id   String
+  votes       Int      @default(0)
   author      User     @relation("UserPosts", fields: [author_id], references: [id])
+  userVotes   User_vote[] @relation("FeedbackPostVotes") 
+}
+
+model User_vote {
+  id              String   @id @default(uuid())
+  user_id         String
+  feedback_post_id String
+  created_at      DateTime @default(now())
+
+  user            User     @relation("UserVotes", fields: [user_id], references: [id])
+  feedbackPost    Feedback_posts @relation("FeedbackPostVotes", fields: [feedback_post_id], references: [id])
+
+  @@unique([user_id, feedback_post_id])
 }
 
 enum Category {

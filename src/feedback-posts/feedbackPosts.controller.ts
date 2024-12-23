@@ -6,20 +6,25 @@ import { UpdateFeedbackPostDto } from './dto/updateFeedbackPost.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FeedbackPostDto } from './dto/feedbackPostDto';
 import { RequestInfo } from '../common/interface/request.interface';
-import { Category, Status } from '@prisma/client';
+import { UserVoteService } from '../user-vote/user-vote.service';
+import { FilterFeedbackPostDto } from './dto/filterFeedbackPostsDto';
+import { SortFeedbackPostDto } from './dto/sortFeedbackPostsDto';
 
 @ApiTags('Feedback Posts')
 @Controller('feedbackPosts')
 export class FeedbackPostsController {
-  constructor(private readonly feedbackPostsService: FeedbackPostsService) {}
+  constructor(
+    private readonly feedbackPostsService: FeedbackPostsService,
+    private readonly userVoteService: UserVoteService,
+  ) {}
 
   @ApiOperation({ summary: 'Create feedback post' })
   @ApiResponse({ status: 200, type: CreateFeedbackPostDto })
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createFeedbackPostDto: CreateFeedbackPostDto, @Request() req: RequestInfo) {
+  create(@Body() userDto: CreateFeedbackPostDto, @Request() req: RequestInfo) {
     const currentUser = req.user;
-    return this.feedbackPostsService.create(createFeedbackPostDto, currentUser);
+    return this.feedbackPostsService.create(userDto, currentUser);
   }
 
   @ApiOperation({ summary: 'Get feedback post' })
@@ -33,8 +38,8 @@ export class FeedbackPostsController {
   @ApiResponse({ status: 200, type: [FeedbackPostDto] })
   @UseGuards(JwtAuthGuard)
   @Get()
-  getPosts() {
-    return this.feedbackPostsService.getFeedbackPosts();
+  getPosts(@Query('page') page: string = '1', @Query('pageSize') pageSize: string = '10') {
+    return this.feedbackPostsService.getFeedbackPosts(Number(page), Number(pageSize));
   }
 
   @ApiOperation({ summary: 'Update feedback post' })
@@ -69,5 +74,30 @@ export class FeedbackPostsController {
   @Get('/categories')
   getCategories() {
     return this.feedbackPostsService.getCategories();
+  }
+
+  @ApiOperation({ summary: 'Get filter feedback post' })
+  @ApiResponse({ status: 200, type: [FeedbackPostDto] })
+  @UseGuards(JwtAuthGuard)
+  @Get('/filter')
+  getFilterFeedbackPost(@Body() userDto: FilterFeedbackPostDto, @Query('page') page: string = '1', @Query('pageSize') pageSize: string = '10') {
+    return this.feedbackPostsService.getFilterFeedbackPosts(userDto, Number(page), Number(pageSize));
+  }
+
+  @ApiOperation({ summary: 'Vote for feedback post' })
+  @ApiResponse({ status: 200, type: String })
+  @UseGuards(JwtAuthGuard)
+  @Post('/vote')
+  vote(@Query('id') id: string, @Request() req: RequestInfo) {
+    const currentUser = req.user;
+    return this.userVoteService.vote(id, currentUser);
+  }
+
+  @ApiOperation({ summary: 'Get sort feedback post' })
+  @ApiResponse({ status: 200, type: String })
+  @UseGuards(JwtAuthGuard)
+  @Get('/sort')
+  getSortFeedbackPost(@Body() userDto: SortFeedbackPostDto, @Query('page') page: string = '1', @Query('pageSize') pageSize: string = '10') {
+    return this.feedbackPostsService.getSortFeedbackPosts(userDto, Number(page), Number(pageSize));
   }
 }

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Category, Status } from '@prisma/client';
-import { IsEnum, IsString, IsDate } from 'class-validator';
+import { IsEnum, IsString, IsDate, IsNumber } from 'class-validator';
 
 export class FeedbackPostDto {
   @ApiProperty({ example: 'basket', description: 'Title post' })
@@ -31,7 +31,11 @@ export class FeedbackPostDto {
   @IsDate()
   readonly updatedAt: Date;
 
-  constructor(title: string, description: string, category: Category, status: Status, author_id: string, createdAt: Date, updatedAt: Date) {
+  @ApiProperty({ example: 0, description: 'Count votes' })
+  @IsNumber()
+  readonly votes: number;
+
+  constructor(title: string, description: string, category: Category, status: Status, author_id: string, createdAt: Date, updatedAt: Date, votes: number) {
     this.title = title;
     this.description = description;
     this.category = category;
@@ -39,5 +43,6 @@ export class FeedbackPostDto {
     this.author_id = author_id;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.votes = votes;
   }
 }

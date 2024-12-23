@@ -8,9 +8,10 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PrismaService } from './database/prisma.service';
 import { FeedbackPostsModule } from './feedback-posts/feedbackPosts.module';
+import { UserVoteModule } from './user-vote/user-vote.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), DatabaseModule, AuthModule, UsersModule, FeedbackPostsModule],
+  imports: [ConfigModule.forRoot(), DatabaseModule, AuthModule, UsersModule, FeedbackPostsModule, UserVoteModule],
   controllers: [AuthController],
   providers: [AuthService, JwtService, PrismaService],
 })

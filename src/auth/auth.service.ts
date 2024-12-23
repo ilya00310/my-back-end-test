@@ -93,7 +93,7 @@ export class AuthService {
   async getCurrentAuthUser(currentUser: CurrentUserDto): Promise<CurrentUserDto | null> {
     const { id } = currentUser;
     const currentUserExist = await this.userService.getUserById(id);
-    if (!currentUser) {
+    if (!currentUserExist) {
       return null;
     }
     const currentUserWithoutPassword = { ...currentUser, password: undefined };
