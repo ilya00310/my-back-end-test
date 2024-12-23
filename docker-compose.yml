@@ -25,7 +25,6 @@ services:
       - .env
     volumes:
       - .:/app
-      - /app/node_modules
     ports:
       - 5431:5431
       - 9229:9229
